@@ -27,3 +27,28 @@ cargo check
 ```cmd
 cargo build --release
 ```
+
+## Format Rust
+
+```cmd
+rustfmt
+cargo fmt
+```
+
+## Using a Crate to Get More Functionality
+
+Remember that a crate is a collection of Rust source code files. The project we’ve been building is a binary crate, which is an executable. The rand crate is a library crate, which contains code intended to be used in other programs, and can’t be executed on its own.
+
+Open `Cargo.toml` file now and add the following line to the bottom beneath the [dependencies] section header that Cargo created for you.
+```
+rand = "0.8.3"
+```
+
+Crates.io is where people in the Rust ecosystem post their open source Rust projects for others to use.
+
+## Updating a Crate to Get a New Version
+
+When you do want to update a crate, Cargo provides the command update, which will ignore the Cargo.lock file and figure out all the latest versions that fit your specifications in Cargo.toml.
+```cmd
+cargo update
+```
