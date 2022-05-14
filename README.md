@@ -65,3 +65,12 @@ ls my-project/src
 Here, we have a package that only contains src/main.rs, meaning it only contains a binary crate named my-project. If a package contains src/main.rs and src/lib.rs, it has two crates: a binary and a library, both with the same name as the package. A package can have multiple binary crates by placing files in the src/bin directory: each file will be a separate binary crate.
 
 A crate will group related functionality together in a scope so the functionality is easy to share between multiple projects.
+
+## Defining Modules to Control Scope and Privacy
+
+Modules let us organize code within a crate into groups for readability and easy reuse. Modules also control the privacy of items, which is whether an item can be used by outside code (public) or is an internal implementation detail and not available for outside use (private).
+
+Create a new library named restaurant by running
+```cmd
+cargo new --lib restaurant
+```
