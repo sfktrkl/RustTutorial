@@ -52,3 +52,16 @@ When you do want to update a crate, Cargo provides the command update, which wil
 ```cmd
 cargo update
 ```
+
+## Packages and Crates
+
+The first parts of the module system we’ll cover are packages and crates. A crate is a binary or library. The crate root is a source file that the Rust compiler starts from and makes up the root module of your crate. A package is one or more crates that provide a set of functionality. A package contains a Cargo.toml file that describes how to build those crates.
+```cmd
+cargo new my-project
+ls my-project
+ls my-project/src
+```
+
+Here, we have a package that only contains src/main.rs, meaning it only contains a binary crate named my-project. If a package contains src/main.rs and src/lib.rs, it has two crates: a binary and a library, both with the same name as the package. A package can have multiple binary crates by placing files in the src/bin directory: each file will be a separate binary crate.
+
+A crate will group related functionality together in a scope so the functionality is easy to share between multiple projects.
