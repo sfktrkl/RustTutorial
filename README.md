@@ -74,3 +74,25 @@ Create a new library named restaurant by running
 ```cmd
 cargo new --lib restaurant
 ```
+
+## Unrecoverable Errors with panic!
+
+Sometimes, bad things happen in your code, and there’s nothing you can do about it. In these cases, Rust has the panic! macro. When the panic! macro executes, your program will print a failure message, unwind and clean up the stack, and then quit.
+
+By default, when a panic occurs, the program starts unwinding, which means Rust walks back up the stack and cleans up the data from each function it encounters. However, this walking back and cleanup is a lot of work. Rust, therefore, allows you to choose the alternative of immediately aborting, which ends the program without cleaning up.
+```rust
+panic!("crash and burn");
+```
+
+If in your project you need to make the resulting binary as small as possible, you can switch from unwinding to aborting upon a panic by adding panic = 'abort' to the appropriate [profile] sections in your Cargo.toml file.
+```toml
+[profile.release]
+panic = 'abort'
+```
+
+A backtrace is a list of all the functions that have been called to get to this point. Backtraces in Rust work as they do in other languages: the key to reading the backtrace is to start from the top and read until you see files you wrote.
+
+Let’s try getting a backtrace by setting the RUST_BACKTRACE environment variable to any value except 0.
+```cmd
+RUST_BACKTRACE=1 cargo run
+```
