@@ -116,3 +116,84 @@ pub fn run2(config: Config) -> Result<(), Box<dyn Error>> {
     println!("With text:\n{}", contents);
     Ok(())
 }
+
+// Developing the Library’s Functionality with Test-Driven Development
+// Now that we’ve extracted the logic into src/lib.rs and left the argument
+// collecting and error handling in src/main.rs, it’s much easier to write tests
+// for the core functionality of our code. We can call functions directly with
+// various arguments and check return values without having to call our binary
+// from the command line.
+
+// In this section, we’ll add the searching logic to the minigrep program by
+// using the Test-driven development (TDD) process. This software development
+// technique follows these steps:
+//  Write a test that fails and run it to make sure it fails for the reason you expect.
+//  Write or modify just enough code to make the new test pass.
+//  Refactor the code you just added or changed and make sure the tests continue to pass.
+//  Repeat from step 1!
+
+// Writing a Failing Test
+// The test function specifies the behavior we want the search function to have:
+// it will take a query and the text to search for the query in, and it will
+// return only the lines from the text that contain the query.
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // This test searches for the string "duct". The text we’re searching is
+    // three lines, only one of which contains "duct" (Note that the backslash
+    // after the opening double quote tells Rust not to put a newline character
+    // at the beginning of the contents of this string literal). We assert that
+    // the value returned from the search function contains only the line we expect.
+    #[test]
+    fn one_result() {
+        let query = "duct";
+        let contents = "\
+Rust:
+safe, fast, productive.
+Pick three.";
+
+        assert_eq!(vec!["safe, fast, productive."], search(query, contents));
+    }
+}
+
+
+// Writing Code to Pass the Test
+// Currently, our test is failing because we always return an empty vector. To fix that and implement search, our program needs to follow these steps:
+// Iterate through each line of the contents.
+// Check whether the line contains our query string.
+// If it does, add it to the list of values we’re returning.
+// If it doesn’t, do nothing.
+// Return the list of results that match.
+pub fn search<'a>(query: &str, contents: &'a str) -> Vec<&'a str> {
+    let mut results = Vec::new();
+    // Iterating Through Lines with the lines Method
+    // Rust has a helpful method to handle line-by-line iteration of strings,
+    // conveniently named lines. The lines method returns an iterator.
+    for line in contents.lines() {
+        // Searching Each Line for the Query
+        // Next, we’ll check whether the current line contains our query string.
+        // Fortunately, strings have a helpful method named contains that does this for us!
+        if line.contains(query) {
+            // Storing Matching Lines
+            // We also need a way to store the lines that contain our query string.
+            // For that, we can make a mutable vector before the for loop and call
+            // the push method to store a line in the vector.
+            results.push(line);
+        }
+    }
+    results
+}
+
+// Using the search Function in the run Function
+// Now that the search function is working and tested, we need to call search
+// from our run function. We need to pass the config.query value and the contents
+// that run reads from the file to the search function.
+pub fn run3(config: Config) -> Result<(), Box<dyn Error>> {
+    let contents = fs::read_to_string(config.filename)?;
+    for line in search(&config.query, &contents) {
+        println!("{}", line);
+    }
+    Ok(())
+}

@@ -163,4 +163,18 @@ fn main() {
         println!("Application error: {}", e);
         process::exit(1);
     }
+
+    // Using the search Function in the run Function
+    let args: Vec<String> = env::args().collect();
+    let config = Config::new2(&args).unwrap_or_else(|err| {
+        println!("Problem parsing arguments: {}", err);
+        process::exit(1);
+    });
+    if let Err(e) = minigrep::run3(config) {
+        println!("Application error: {}", e);
+        process::exit(1);
+    }
+    //$ cargo run frog poem.txt
+    //$ cargo run body poem.txt
+    //$ cargo run monomorphization poem.txt
 }
