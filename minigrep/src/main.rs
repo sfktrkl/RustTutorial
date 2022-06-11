@@ -1,4 +1,5 @@
 use minigrep::Config;
+use minigrep::Config2;
 use std::env;
 use std::fs;
 use std::process;
@@ -177,4 +178,16 @@ fn main() {
     //$ cargo run frog poem.txt
     //$ cargo run body poem.txt
     //$ cargo run monomorphization poem.txt
+
+    let args: Vec<String> = env::args().collect();
+    let config = Config2::new(&args).unwrap_or_else(|err| {
+        println!("Problem parsing arguments: {}", err);
+        process::exit(1);
+    });
+    if let Err(e) = minigrep::run4(config) {
+        println!("Application error: {}", e);
+        process::exit(1);
+    }
+    //PS> $Env:CASE_INSENSITIVE=1; cargo run to poem.txt
+    //PS> Remove-Item Env:CASE_INSENSITIVE
 }

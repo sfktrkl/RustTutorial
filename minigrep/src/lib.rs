@@ -1,3 +1,4 @@
+use std::env;
 use std::error::Error;
 use std::fs;
 
@@ -156,8 +157,48 @@ Pick three.";
 
         assert_eq!(vec!["safe, fast, productive."], search(query, contents));
     }
-}
 
+    // Working with Environment Variables
+    // We’ll improve minigrep by adding an extra feature: an option for case-insensitive
+    // searching that the user can turn on via an environment variable. We could make
+    // this feature a command line option and require that users enter it each time
+    // they want it to apply, but instead we’ll use an environment variable. Doing
+    // so allows our users to set the environment variable once and have all their
+    // searches be case insensitive in that terminal session.
+
+    // Writing a Failing Test for the Case-Insensitive search Function
+    // We want to add a new search_case_insensitive function that we’ll call when
+    // the environment variable is on. We’ll continue to follow the TDD process, so
+    // the first step is again to write a failing test. We’ll add a new test for the
+    // new search_case_insensitive function and rename our old test from one_result
+    // to case_sensitive to clarify the differences between the two tests.
+    #[test]
+    fn case_sensitive() {
+        let query = "duct";
+        let contents = "\
+Rust:
+safe, fast, productive.
+Pick three.
+Duct tape.";
+
+        assert_eq!(vec!["safe, fast, productive."], search(query, contents));
+    }
+
+    #[test]
+    fn case_insensitive() {
+        let query = "rUsT";
+        let contents = "\
+Rust:
+safe, fast, productive.
+Pick three.
+Trust me.";
+
+        assert_eq!(
+            vec!["Rust:", "Trust me."],
+            search_case_insensitive(query, contents)
+        );
+    }
+}
 
 // Writing Code to Pass the Test
 // Currently, our test is failing because we always return an empty vector. To fix that and implement search, our program needs to follow these steps:
@@ -196,4 +237,76 @@ pub fn run3(config: Config) -> Result<(), Box<dyn Error>> {
         println!("{}", line);
     }
     Ok(())
+}
+
+// Implementing the search_case_insensitive Function
+// The search_case_insensitive function, shown in Listing 12-21, will be almost
+// the same as the search function. The only difference is that we’ll lowercase
+// the query and each line so whatever the case of the input arguments, they’ll
+// be the same case when we check whether the line contains the query.
+pub fn search_case_insensitive<'a>(query: &str, contents: &'a str) -> Vec<&'a str> {
+    let query = query.to_lowercase();
+    let mut results = Vec::new();
+    for line in contents.lines() {
+        // First, we lowercase the query string and store it in a shadowed variable
+        // with the same name. Calling to_lowercase on the query is necessary
+        // so no matter whether the user’s query is "rust", "RUST", "Rust", or
+        // "rUsT", we’ll treat the query as if it were "rust" and be insensitive
+        // to the case. While to_lowercase will handle basic Unicode, it won’t
+        // be 100% accurate. If we were writing a real application, we’d want to
+        // do a bit more work here, but this section is about environment variables,
+        // not Unicode, so we’ll leave it at that here.
+        if line.to_lowercase().contains(&query) {
+            results.push(line);
+        }
+    }
+    results
+}
+
+// Great! They passed. Now, let’s call the new search_case_insensitive function
+// from the run function. First, we’ll add a configuration option to the Config
+// struct to switch between case-sensitive and case-insensitive search. Adding
+// this field will cause compiler errors because we aren’t initializing this
+// field anywhere yet:
+pub struct Config2 {
+    pub query: String,
+    pub filename: String,
+    pub case_sensitive: bool,
+}
+
+// Note that we added the case_sensitive field that holds a Boolean. Next, we
+// need the run function to check the case_sensitive field’s value and use that
+// to decide whether to call the search function or the search_case_insensitive function.
+pub fn run4(config: Config2) -> Result<(), Box<dyn Error>> {
+    let contents = fs::read_to_string(config.filename)?;
+    let results = if config.case_sensitive {
+        search(&config.query, &contents)
+    } else {
+        search_case_insensitive(&config.query, &contents)
+    };
+    for line in results {
+        println!("{}", line);
+    }
+    Ok(())
+}
+
+// Finally, we need to check for the environment variable. The functions for
+// working with environment variables are in the env module in the standard
+// library, so we want to bring that module into scope with a use std::env;
+// line at the top of src/lib.rs. Then we’ll use the var function from the
+// env module to check for an environment variable named CASE_INSENSITIVE.
+impl Config2 {
+    pub fn new(args: &[String]) -> Result<Config2, &'static str> {
+        if args.len() < 3 {
+            return Err("not enough arguments");
+        }
+        let query = args[1].clone();
+        let filename = args[2].clone();
+        let case_sensitive = env::var("CASE_INSENSITIVE").is_err();
+        Ok(Config2 {
+            query,
+            filename,
+            case_sensitive,
+        })
+    }
 }
