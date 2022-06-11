@@ -190,4 +190,44 @@ fn main() {
     }
     //PS> $Env:CASE_INSENSITIVE=1; cargo run to poem.txt
     //PS> Remove-Item Env:CASE_INSENSITIVE
+
+    // Writing Error Messages to Standard Error Instead of Standard Output
+    // At the moment, we’re writing all of our output to the terminal using the
+    // println! macro. In most terminals, there are two kinds of output: standard
+    // output (stdout) for general information and standard error (stderr) for
+    // error messages. This distinction enables users to choose to direct the
+    // successful output of a program to a file but still print error messages
+    // to the screen.
+    //The println! macro is only capable of printing to standard output, so we
+    // have to use something else to print to standard error.
+
+    // Checking Where Errors Are Written
+    // First, let’s observe how the content printed by minigrep is currently
+    // being written to standard output, including any error messages we want
+    // to write to standard error instead. We’ll do that by redirecting the
+    // standard output stream to a file while also intentionally causing an error.
+    // We won’t redirect the standard error stream, so any content sent to
+    // standard error will continue to display on the screen.
+    // Command line programs are expected to send error messages to the standard
+    // error stream so we can still see error messages on the screen even if we
+    // redirect the standard output stream to a file. Our program is not currently
+    // well-behaved: we’re about to see that it saves the error message output to
+    // a file instead!
+    //$ cargo run > output.txt
+
+    // Printing Errors to Standard Error
+    // The standard library provides the eprintln! macro that prints to the
+    // standard error stream, so let’s change the two places we were calling
+    // println! to print errors to use eprintln! instead.
+    let args: Vec<String> = env::args().collect();
+    let config = Config::new2(&args).unwrap_or_else(|err| {
+        eprintln!("Problem parsing arguments: {}", err);
+        process::exit(1);
+    });
+    if let Err(e) = minigrep::run3(config) {
+        eprintln!("Application error: {}", e);
+        process::exit(1);
+    }
+    //$ cargo run > output.txt
+    //$ cargo run to poem.txt > output.txt
 }
