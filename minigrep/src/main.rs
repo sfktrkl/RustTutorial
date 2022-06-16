@@ -1,5 +1,6 @@
 use minigrep::Config;
 use minigrep::Config2;
+use minigrep::Config3;
 use std::env;
 use std::fs;
 use std::process;
@@ -230,4 +231,18 @@ fn main() {
     }
     //$ cargo run > output.txt
     //$ cargo run to poem.txt > output.txt
+
+    // Using the Returned Iterator Directly
+    // The env::args function returns an iterator! Rather than collecting the
+    // iterator values into a vector and then passing a slice to Config::new,
+    // now we’re passing ownership of the iterator returned from env::args to
+    // Config::new directly.
+    let config = Config3::new(env::args()).unwrap_or_else(|err| {
+        eprintln!("Problem parsing arguments: {}", err);
+        process::exit(1);
+    });
+    if let Err(e) = minigrep::run5(config) {
+        println!("Application error: {}", e);
+        process::exit(1);
+    }
 }
